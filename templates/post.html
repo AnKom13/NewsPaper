@@ -1,0 +1,31 @@
+<!--  наследуемся от шаблона default.html, который мы создавали для flatpages-->
+{% extends 'flatpages/default.html' %}
+{% load filters %}
+
+<!-- Название у нас будет Post -->
+{% block title %}
+Подробно
+{% endblock title %}
+
+
+
+{% block content %}
+   <h1>Детальная информация</h1>
+   <hr>
+   {% if post %}
+       <table>
+           <tr>
+               <td>Заголовок</td>
+               <td>Дата публикации</td>
+               <td>Полный текст</td>
+           </tr>
+           <tr>
+               <td>{{ post.heading|censor }}</td>
+               <td>{{ post.time_create|date:'d.m.Y' }}</td>
+               <td>{{ post.content|censor }}</td>
+           </tr>
+       </table> <!-- ... и таблицы -->
+   {% else %}
+       <h2>Такого поста нет!</h2>
+   {% endif %}
+{% endblock content %}
