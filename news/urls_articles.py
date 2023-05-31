@@ -1,7 +1,7 @@
 from django.urls import path, include
 from news.views import ArticlesList
 
-from news.views import detail
+from news.views import detail_article
 
 
 
@@ -15,6 +15,6 @@ urlpatterns = [
 
 # Вариант со списком и ссылками на элементы
 # внимание на параметр name. Без него django не может найти функцию
-    path('<int:pk>', detail, name='detail'),
+    path('<int:pk>', detail_article, name='detail_article'),
 
 ]

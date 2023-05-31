@@ -25,6 +25,7 @@
        <table>
            <tr>
                <td>Заголовок</td>
+               <td>
                <td>Дата публикации</td>
                <td>Первые 20 символов</td>
                <td>Рейтинг</td>
@@ -34,7 +35,7 @@
            <tr>
                <!-- Накладываю фильтр -->
                <td>
-                   <a href="{% url 'detail' pk=p.id %}">{{ p.heading|censor }} </a>
+                   <a href="{% url 'detail_news' pk=p.id %}">{{ p.heading|censor }} </a>
                </td>
                <td>{{ p.time_create|date:'d.m.Y' }}</td>
                <!-- вывод первых 20 символов поля. Можно было переделать через preview и вызвать p.preview -->

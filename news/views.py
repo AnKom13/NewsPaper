@@ -9,9 +9,10 @@ from .forms import NewsForm, ArticleForm
 from .models import Post
 
 from .filters import NewsFilter, ArticlesFilter
+from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
+from django.views.generic.edit import CreateView
 
-
-class NewsList(ListView):
+class NewsList(LoginRequiredMixin, ListView):
     # Указываем модель, объекты которой мы будем выводить
     model = Post
     # Поле, которое будет использоваться для сортировки объектов
@@ -52,7 +53,7 @@ class NewsList(ListView):
         return context
 
 
-class ArticlesList(ListView):
+class ArticlesList(LoginRequiredMixin, ListView):
     # Указываем модель, объекты которой мы будем выводить
     model = Post
     # Поле, которое будет использоваться для сортировки объектов
@@ -90,9 +91,13 @@ class ArticlesList(ListView):
 from django.shortcuts import render
 from django.urls import reverse_lazy
 
-def detail(request, pk):
+def detail_article(request, pk):
     post = Post.objects.get(pk__exact=pk)
-    return render(request, 'post.html', context={'post': post})
+    return render(request, 'article.html', context={'post': post})
+
+def detail_news(request, pk):
+    post = Post.objects.get(pk__exact=pk)
+    return render(request, 'news.html', context={'post': post})
 
 
 # тест
@@ -104,7 +109,7 @@ from .models import Post
 
 
 #Классы новости
-class NewsSearch(CreateView):
+class NewsSearch(LoginRequiredMixin, CreateView):
     # Указываем нашу разработанную форму
     form_class = NewsForm
     # модель товаров
@@ -112,35 +117,75 @@ class NewsSearch(CreateView):
     # и новый шаблон, в котором используется форма.
     template_name = 'news_edit.html'
 
-class NewsCreate(CreateView):
+class NewsCreate(PermissionRequiredMixin, CreateView):
     # Указываем нашу разработанную форму
     form_class = NewsForm
+
+    #проверка прав
+    permission_required = ('news.add_post',)
     # модель товаров
     model = Post
     # и новый шаблон, в котором используется форма.
     template_name = 'news_edit.html'
 
 
-class NewsDetail(DetailView):
+class NewsDetail(LoginRequiredMixin, DetailView):
     model = Post
+
     template_name = 'news.html'
     context_object_name = 'news'
 
 
-class NewsEdit(UpdateView):
+class NewsEdit(PermissionRequiredMixin, UpdateView):
     form_class = NewsForm
+    permission_required = ('news.change_post',)
     model = Post
     template_name = 'news_edit.html'
 
 
-class NewsDelete(DeleteView):
+class NewsDelete(PermissionRequiredMixin, DeleteView):
     model = Post
     template_name = 'news_delete.html'
     success_url = reverse_lazy('news_list')
 
 #Классы статьи
 
-class ArticleCreate(CreateView):
+#class ArticleCreate(CreateView):
+class ArticleCreate(PermissionRequiredMixin, CreateView):
+
+    # Указываем нашу разработанную форму
+    form_class = ArticleForm
+
+    #проверка прав
+    permission_required = ('news.add_post',)
+
+    # модель товаров
+    model = Post
+    # и новый шаблон, в котором используется форма.
+    template_name = 'article_edit.html'
+
+
+class ArticleDetail(LoginRequiredMixin, DetailView):
+    model = Post
+    template_name = 'article.html'
+    context_object_name = 'article'
+
+
+
+class ArticleEdit(PermissionRequiredMixin, UpdateView):
+    form_class = NewsForm
+    permission_required = ('news.change_post',)
+    model = Post
+    template_name = 'article_edit.html'
+
+
+class ArticleDelete(PermissionRequiredMixin, DeleteView):
+    model = Post
+    template_name = 'article_delete.html'
+    success_url = reverse_lazy('article_list')
+
+
+class ArticleSearch(LoginRequiredMixin, CreateView):
     # Указываем нашу разработанную форму
     form_class = ArticleForm
     # модель товаров
@@ -148,23 +193,6 @@ class ArticleCreate(CreateView):
     # и новый шаблон, в котором используется форма.
     template_name = 'article_edit.html'
 
-
-class ArticleDetail(DetailView):
-    model = Post
-    template_name = 'article.html'
-    context_object_name = 'article'
-
-
-class ArticleEdit(UpdateView):
-    form_class = NewsForm
-    model = Post
-    template_name = 'article_edit.html'
-
-
-class ArticleDelete(DeleteView):
-    model = Post
-    template_name = 'article_delete.html'
-    success_url = reverse_lazy('article_list')
 
 
 # мусор

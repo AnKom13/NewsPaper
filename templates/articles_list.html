@@ -17,8 +17,6 @@
        <input type="submit" value="Найти" />
    </form>
 
-
-
    <hr>
    {% if articles %}
        <h3> Количество статей: {{ articles|length }}</h3>
@@ -34,7 +32,7 @@
            <tr>
                <!-- Накладываю фильтр -->
                <td>
-                   <a href="{% url 'detail' pk=p.id %}">{{ p.heading|censor }} </a>
+                   <a href="{% url 'detail_article' pk=p.id %}">{{ p.heading|censor }} </a>
                </td>
                <td>{{ p.time_create|date:'d.m.Y' }}</td>
                <!-- вывод первых 20 символов поля. Можно было переделать через preview и вызвать p.preview -->
