@@ -8,51 +8,29 @@
 {% endblock title %}
 
 {% block content %}
-   <h1>Все новости</h1>
-   {# Добавляем форму, которая  объединяет набор полей, которые будут отправляться в запросе #}
-   <form action="" method="get">
-       {# Переменная, которую мы передали через контекст, может сгенерировать нам форму с полями #}
-       {{ filterset.form.as_p }}
-       {# Добавим кнопку отправки данных формы #}
-       <input type="submit" value="Найти" />
-   </form>
-
-
+    <h1 class="text-center">новости из категории: <span class="text-muted fs-6 fw-normal"> {{ category }}</span></h1>
+    {% if is_not_subscriber %}
+        <p class="text-center"><a href="{% url 'subscribe' category.id %}" class="btn btn-secondary btn-sn">Подписаться</a></p>
+    {% endif %}
 
    <hr>
-   {% if news %}
+   {% if category_news_list %}
        <h3> Количество постов: {{ news|length }}</h3>
-       <table>
-           <tr>
-               <td>Заголовок</td>
-               <td>Дата публикации</td>
-               <td>Первые 20 символов</td>
-               <td>Рейтинг</td>
-               <td>Категория</td>
-           </tr>
-           {% for p in news %}
-           <tr>
-               <!-- Накладываю фильтр -->
-               <td>
-                   <a href="{% url 'detail_news' pk=p.id %}">{{ p.heading|censor }} </a>
-               </td>
-               <td>{{ p.time_create|date:'d.m.Y' }}</td>
-               <!-- вывод первых 20 символов поля. Можно было переделать через preview и вызвать p.preview -->
-               <td>{{ p.content|censor|truncatechars:20 }}</td>
-               <td>{{ p.rate }}</td>
-               <td>
 
-                   {% for c in p.category.all %}
-                          <a href="{% url 'category_list' c.id %}"> {{ c.name }}</a>
-<!--                      {{ c.name }}-->
-                      {% if forloop.counter < p.category.count  %}
-                        ,
-                      {% endif %}
-                   {% endfor %}
-               </td>
-           </tr>
+           {% for p in category_news_list %}
+               <li class="list-group-item">
+                   <small class="fw-bold">{{ p.time_create|date:'d.m.Y' }}</small>
+                   <a href="{% url 'detail_news' pk=p.id %}">{{ p.heading|censor }} </a>
+                   <small class="text-muted">(автор: {{ p.author }})</small> <br>
+                   <small class="fw-bold">Категории:
+                        {% for category in p.category.all %}
+                            <a href="{% url 'category_list' category.id %}"> {{ category }}</a>
+                        {% endfor %}
+                   </small>
+                   <p>{{ p.content|censor|truncatechars:20 }}</p>
+               </li>
            {% endfor %}
-       </table>
+           </ul>
    {% else %}
        <h2>Новостей  нет!</h2>
    {% endif %}

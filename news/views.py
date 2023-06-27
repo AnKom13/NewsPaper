@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 # Create your views here.
@@ -6,11 +7,13 @@ from django.shortcuts import render
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 
 from .forms import NewsForm, ArticleForm
-from .models import Post
+from .models import Post, Category
 
 from .filters import NewsFilter, ArticlesFilter
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 from django.views.generic.edit import CreateView
+from django.shortcuts import get_object_or_404
+
 
 class NewsList(LoginRequiredMixin, ListView):
     # Указываем модель, объекты которой мы будем выводить
@@ -41,7 +44,6 @@ class NewsList(LoginRequiredMixin, ListView):
         # Сохраняем нашу фильтрацию в объекте класса,
         # чтобы потом добавить в контекст и использовать в шаблоне.
         self.filterset = NewsFilter(self.request.GET, queryset)
-
 
         # Возвращаем из функции отфильтрованный список новостей
         return self.filterset.qs
@@ -91,9 +93,11 @@ class ArticlesList(LoginRequiredMixin, ListView):
 from django.shortcuts import render
 from django.urls import reverse_lazy
 
+
 def detail_article(request, pk):
     post = Post.objects.get(pk__exact=pk)
     return render(request, 'article.html', context={'post': post})
+
 
 def detail_news(request, pk):
     post = Post.objects.get(pk__exact=pk)
@@ -108,7 +112,7 @@ from django.http import HttpResponseRedirect
 from .models import Post
 
 
-#Классы новости
+# Классы новости
 class NewsSearch(LoginRequiredMixin, CreateView):
     # Указываем нашу разработанную форму
     form_class = NewsForm
@@ -117,11 +121,12 @@ class NewsSearch(LoginRequiredMixin, CreateView):
     # и новый шаблон, в котором используется форма.
     template_name = 'news_edit.html'
 
+
 class NewsCreate(PermissionRequiredMixin, CreateView):
     # Указываем нашу разработанную форму
     form_class = NewsForm
 
-    #проверка прав
+    # проверка прав
     permission_required = ('news.add_post',)
     # модель товаров
     model = Post
@@ -148,15 +153,15 @@ class NewsDelete(PermissionRequiredMixin, DeleteView):
     template_name = 'news_delete.html'
     success_url = reverse_lazy('news_list')
 
-#Классы статьи
 
-#class ArticleCreate(CreateView):
+# Классы статьи
+
+# class ArticleCreate(CreateView):
 class ArticleCreate(PermissionRequiredMixin, CreateView):
-
     # Указываем нашу разработанную форму
     form_class = ArticleForm
 
-    #проверка прав
+    # проверка прав
     permission_required = ('news.add_post',)
 
     # модель товаров
@@ -169,7 +174,6 @@ class ArticleDetail(LoginRequiredMixin, DetailView):
     model = Post
     template_name = 'article.html'
     context_object_name = 'article'
-
 
 
 class ArticleEdit(PermissionRequiredMixin, UpdateView):
@@ -193,6 +197,31 @@ class ArticleSearch(LoginRequiredMixin, CreateView):
     # и новый шаблон, в котором используется форма.
     template_name = 'article_edit.html'
 
+
+class CategoryListView(ListView):
+    model = Post
+    template_name = 'category_list.html'
+    context_object_name = 'category_news_list'
+
+    def get_queryset(self):
+        self.category = get_object_or_404(Category, id=self.kwargs['pk'])
+        queryset = Post.objects.filter(category=self.category).order_by('-time_create')
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_not_subscriber'] = self.request.user not in self.category.subscribers.all()
+        context['category'] = self.category
+        return context
+
+
+@login_required
+def subscribe(request, pk):
+    user = request.user
+    category = Category.objects.get(id=pk)
+    category.subscribers.add(user)
+    message = 'Вы подписались на категорию: '
+    return render(request, 'subscribe.html', {'category': category, 'message': message})
 
 
 # мусор

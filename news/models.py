@@ -16,13 +16,17 @@ class Author(models.Model):  # наследуемся от класса Model
         self.save()
 
     def __str__(self):
-        return str(self.user.id) + ' - ' + self.user.username
+        #        return str(self.user.id) + ' - ' + self.user.username
+        return self.user.username
+
 
 class Category(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    subscribers = models.ManyToManyField(User, related_name='categories')
 
     def __str__(self):
         return str(self.name)
+
 
 class Post(models.Model):
     CHOICE = [
@@ -47,12 +51,12 @@ class Post(models.Model):
         self.save()
 
     def preview(self):
-#        return self.content[0:123]+'...'
+        #        return self.content[0:123]+'...'
         return '{0}{1}'.format(self.content[0:123], '...')
 
     def __str__(self):
         return str(self.id) + ' - ' + self.property + ' - ' + self.preview()
-        #return self.preview()
+        # return self.preview()
 
     def get_absolute_url(self):
         # Т.к. статьи и новости лежат в одной модели, а ссылки у них д.б. разные
@@ -61,6 +65,10 @@ class Post(models.Model):
             return reverse('news_detail', args=[str(self.id)])
         else:
             return reverse('article_detail', args=[str(self.id)])
+
+    def articles_absolute_url(self):
+        return f'/articles/{self.id}'
+
 
 class PostCategory(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)

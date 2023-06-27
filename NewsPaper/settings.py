@@ -11,16 +11,45 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os
 from pathlib import Path
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Start Django-environ
+env = environ.Env(DEBUG=(bool, False))
+ # reading .env file
+env.read_env(os.path.join(BASE_DIR, '.env'))
+
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-w)1^3y^jxayh2t15-x#i8j_8504(r%y33z(=9ayw3&%6*l8(-f'
+
+#работают все варианты
+#SECRET_KEY = 'django-insecure-w)1^3y^jxayh2t15-x#i8j_8504(r%y33z(=9ayw3&%6*l8(-f'
+#SECRET_KEY = env('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY')
+#SECRET_KEY = os.environ['SECRET_KEY']
+
+#print(env.ENVIRON)
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+
+#беру из окружения, но там только текст, поэтому использую int,bool
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_USE_SSL = bool(os.getenv('EMAIL_USE_SSL'))
+
+
+
+
+
+SITE_ID = 1
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -44,8 +73,9 @@ INSTALLED_APPS = [
     # ... include the providers you want to enable:
     'allauth.socialaccount.providers.google',
 
-
-    'news',
+    'django_apscheduler',
+#    'news',
+    'news.apps.NewsConfig',
     'accounts',
     'sign',
     'protect',
@@ -53,7 +83,7 @@ INSTALLED_APPS = [
     'django_filters',
 ]
 
-SITE_ID = 1
+SITE_URL = 'http://127.0.0.1:8000'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -73,6 +103,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        #'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -154,10 +185,18 @@ STATICFILES_DIRS = [
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 
+APSCHEDULER_DATETIME_FORMAT = 'N j, Y, f:s a'
+#указывает за время (25 сек) за которое функция д.б. выполнена. Если интервал будет превышен, то функция будет прервана.
+APSCHEDULER_RUN_NOW_TIMEOUT = 25
+
+
+
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_VERIFICATION = 'none'
+#ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+
 
 ACCOUNT_FORMS = {'signup': 'sign.models.BasicSignupForm'}
