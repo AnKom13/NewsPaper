@@ -22,10 +22,10 @@ import re
 def censor(st):
     # список нехороших слов
     badWords = (
-                'редиска',
-                'сосиска',
-                'сарделька',
-                'зараза',)
+        'редиска',
+        'сосиска',
+        'сарделька',
+        'зараза',)
     try:
         for e in badWords:
             #    reg_exp = fr"{e}\b"
@@ -35,4 +35,3 @@ def censor(st):
     except TypeError:
         st = 'Ошибка типа'
     return st
-

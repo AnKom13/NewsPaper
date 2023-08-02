@@ -1,5 +1,5 @@
-import django_filters
-from django_filters import FilterSet
+# import django_filters
+# from django_filters import FilterSet
 from .models import Post, Category
 
 # Создаем свой набор фильтров для модели Post
@@ -24,21 +24,21 @@ class NewsFilter(FilterSet):
     category = ModelMultipleChoiceFilter(field_name='category', label='Выберите категории:',
                                          queryset=Category.objects.all(), )
 
+
 # Т.к. я сделал поиск для каждой формы, то этот класс не нужен
 # Сделано, чтобы поменять подписи полей на html в части пойскойвой формы
 # Если его включить, то порядок вывода 1) все из Meta, 2) поля вне Meta
-    # class Meta:
-    #     # В Meta классе мы должны указать Django модель,
-    #     # в которой будем фильтровать записи.
-    #     model = Post
-    #     # В fields мы описываем по каким полям модели
-    #     # будет производиться фильтрация.
-    #     fields = {
-    #         # поиск по названию
-    #                    'heading': ['icontains'],
-    #                    'category': ['exact']
-    #     }
-
+# class Meta:
+#     # В Meta классе мы должны указать Django модель,
+#     # в которой будем фильтровать записи.
+#     model = Post
+#     # В fields мы описываем по каким полям модели
+#     # будет производиться фильтрация.
+#     fields = {
+#         # поиск по названию
+#                    'heading': ['icontains'],
+#                    'category': ['exact']
+#     }
 
 
 class ArticlesFilter(FilterSet):

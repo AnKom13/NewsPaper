@@ -16,7 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from news.views import NewsCreate, NewsDetail, NewsDelete, NewsEdit, NewsList, NewsSearch, CategoryListView, subscribe
+from news.views import NewsCreate, NewsDetail, NewsDelete, NewsEdit, CategoryListView, subscribe
+# from news.views NewsList, NewsSearch
 from news.views import ArticleCreate, ArticleDetail, ArticleDelete, ArticleEdit
 from accounts.views import ProfileEdit
 from news.views import multiply

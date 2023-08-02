@@ -18,38 +18,31 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Start Django-environ
 env = environ.Env(DEBUG=(bool, False))
- # reading .env file
+# reading .env file
 env.read_env(os.path.join(BASE_DIR, '.env'))
-
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
-#работают все варианты
-#SECRET_KEY = 'django-insecure-w)1^3y^jxayh2t15-x#i8j_8504(r%y33z(=9ayw3&%6*l8(-f'
-#SECRET_KEY = env('SECRET_KEY')
+# работают все варианты
+# SECRET_KEY = 'django-insecure-w)1^3y^jxayh2t15-x#i8j_8504(r%y33z(=9ayw3&%6*l8(-f'
+# SECRET_KEY = env('SECRET_KEY')
 SECRET_KEY = os.getenv('SECRET_KEY')
-#SECRET_KEY = os.environ['SECRET_KEY']
+# SECRET_KEY = os.environ['SECRET_KEY']
 
-#print(env.ENVIRON)
+# print(env.ENVIRON)
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
-#беру из окружения, но там только текст, поэтому использую int,bool
+# беру из окружения, но там только текст, поэтому использую int,bool
 EMAIL_HOST = os.getenv('EMAIL_HOST')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT'))
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_USE_SSL = bool(os.getenv('EMAIL_USE_SSL'))
 
-
-
-
-
 SITE_ID = 1
-
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -74,7 +67,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
 
     'django_apscheduler',
-#    'news',
+    #    'news',
     'news.apps.NewsConfig',
     'accounts',
     'sign',
@@ -86,6 +79,7 @@ INSTALLED_APPS = [
 SITE_URL = 'http://127.0.0.1:8000'
 
 MIDDLEWARE = [
+    #    'news.middleware.timing',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -103,7 +97,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        #'DIRS': [],
+        # 'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -118,7 +112,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'NewsPaper.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
@@ -128,7 +121,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -167,7 +159,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
@@ -181,22 +172,154 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_DIRS = [
     BASE_DIR / "static"
 ]
-#LOGIN_URL = 'sign/login/'
+# LOGIN_URL = 'sign/login/'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 
 APSCHEDULER_DATETIME_FORMAT = 'N j, Y, f:s a'
-#указывает за время (25 сек) за которое функция д.б. выполнена. Если интервал будет превышен, то функция будет прервана.
+# указывает за время (25 сек) за которое функция д.б. выполнена. Если интервал будет превышен, то функция будет прервана.
 APSCHEDULER_RUN_NOW_TIMEOUT = 25
-
-
 
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
-#ACCOUNT_EMAIL_VERIFICATION = 'none'
+# ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
-
 ACCOUNT_FORMS = {'signup': 'sign.models.BasicSignupForm'}
+
+CELERY_BROKER_URL = 'redis://default:9mnCL6AVXg4InQF0CVBJ41kUYV4LVXjo@redis-19984.c304.europe-west1-2.gce.cloud.redislabs.com:19984'
+CELERY_RESULT_BACKEND = 'redis://default:9mnCL6AVXg4InQF0CVBJ41kUYV4LVXjo@redis-19984.c304.europe-west1-2.gce.cloud.redislabs.com:19984'
+
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'loggers': {
+        'django': {
+            'handlers': ['console_1_all', 'console_1_warning', 'console_1_er_cr', 'general'],
+            'level': 'DEBUG'
+        },
+
+        'django.request': {
+            'handlers': ['errors', 'mail_admins'],
+            'level': 'ERROR'
+        },
+        'django.server': {
+            'handlers': ['errors', 'mail_admins'],
+            'level': 'ERROR'
+        },
+        'django.template': {
+            'handlers': ['errors'],
+            'level': 'ERROR'
+        },
+        'django.db.backends': {
+            'handlers': ['errors'],
+            'level': 'ERROR'
+        },
+        'django.db.security': {
+            'handlers': ['security'],
+            'level': 'INFO'
+        },
+
+    },
+    'handlers': {
+        'console_1_all': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'task_1_all',
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+        },
+        'console_1_warning': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'task_1_warning',
+            'level': 'WARNING',
+            'filters': ['require_debug_true'],
+        },
+        'console_1_er_cr': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'task_1_er_cr',
+            'level': 'ERROR',
+            'filters': ['require_debug_true'],
+        },
+        'general': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'general.log',
+            'formatter': 'task_2',
+            'filters': ['require_debug_false'],
+        },
+        'errors': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'errors.log',
+            'formatter': 'task_3',
+        },
+        'security': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'security.log',
+            'formatter': 'task_4',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'formatter': 'task_5',
+            'filters': ['require_debug_false'],
+        },
+
+    },
+
+    'formatters': {
+        'task_1_all': {
+            'format': '{asctime} {levelname} {message}',
+            'datetime': '%Y.%m.%d %H:%M:%S',
+            'style': '{',
+        },
+        'task_1_warning': {
+            'format': '{asctime} {levelname} {message} {pathname}',
+            'datetime': '%Y.%m.%d %H:%M:%S',
+            'style': '{',
+        },
+        'task_1_er_cr': {
+            'format': '{asctime} {levelname} {message} {pathname} {exc_info}',
+            'datetime': '%Y.%m.%d %H:%M:%S',
+            'style': '{',
+        },
+        'task_2': {
+            'format': '{asctime} {levelname} {module} {message}',
+            'datetime': '%Y.%m.%d %H:%M:%S',
+            'style': '{',
+        },
+        'task_3': {
+            'format': '{asctime} {levelname} {message} {pathname} {exc_info}',
+            'datetime': '%Y.%m.%d %H:%M:%S',
+            'style': '{',
+        },
+        'task_4': {
+            'format': '{asctime} {levelname} {module} {message}',
+            'datetime': '%Y.%m.%d %H:%M:%S',
+            'style': '{',
+        },
+        'task_5': {
+            'format': '{asctime} {levelname} {message} {pathname}',
+            'datetime': '%Y.%m.%d %H:%M:%S',
+            'style': '{',
+        },
+    },
+
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+    },
+}
+
+ADMINS = [('Andrey', 'ankom225@gmail.com')]

@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models import Sum, Count
+from django.db.models import Sum
 from django.urls import reverse
 
 
@@ -23,6 +23,11 @@ class Author(models.Model):  # наследуемся от класса Model
 class Category(models.Model):
     name = models.CharField(max_length=255, unique=True)
     subscribers = models.ManyToManyField(User, related_name='categories')
+
+    # допишем свойство, которое будет отображать id+1 (учебный пример)
+    @property
+    def example(self):
+        return self.id+1
 
     def __str__(self):
         return str(self.name)

@@ -1,10 +1,10 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-
+from django.urls import reverse_lazy
 # Create your views here.
 # Импортируем класс, который говорит нам о том,
 # что в этом представлении мы будем выводить список объектов из БД
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, UpdateView, DeleteView
 
 from .forms import NewsForm, ArticleForm
 from .models import Post, Category
@@ -13,6 +13,10 @@ from .filters import NewsFilter, ArticlesFilter
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 from django.views.generic.edit import CreateView
 from django.shortcuts import get_object_or_404
+
+#import logging
+#logger = logging.getLogger(__name__)
+
 
 
 class NewsList(LoginRequiredMixin, ListView):
@@ -90,10 +94,6 @@ class ArticlesList(LoginRequiredMixin, ListView):
         return context
 
 
-from django.shortcuts import render
-from django.urls import reverse_lazy
-
-
 def detail_article(request, pk):
     post = Post.objects.get(pk__exact=pk)
     return render(request, 'article.html', context={'post': post})
@@ -107,7 +107,7 @@ def detail_news(request, pk):
 # тест
 from django.http import HttpResponse
 
-from django.http import HttpResponseRedirect
+# from django.http import HttpResponseRedirect
 
 from .models import Post
 
@@ -233,6 +233,6 @@ def multiply(request):
         result = int(f) * int(s)
         html = f"<html><body>{f}*{s}={result}</body></html>"
     except (ValueError, TypeError):
-        html = f"<html><body>Invalid input.</body></html>"
+        html = "<html><body>Invalid input.</body></html>"
 
     return HttpResponse(html)
