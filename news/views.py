@@ -1,9 +1,13 @@
+import django_filters
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.urls import reverse_lazy
+from django.utils.translation import gettext as _  # импортируем функцию для перевода
+
 # Create your views here.
 # Импортируем класс, который говорит нам о том,
 # что в этом представлении мы будем выводить список объектов из БД
+from django.views import View
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView
 
 from .forms import NewsForm, ArticleForm
@@ -14,10 +18,83 @@ from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMix
 from django.views.generic.edit import CreateView
 from django.shortcuts import get_object_or_404
 
-#import logging
-#logger = logging.getLogger(__name__)
+from django.shortcuts import render
+from rest_framework import viewsets
+from rest_framework import permissions
+
+from news.serializers import *
+from news.models import *
+from rest_framework import generics
+
+class CategoryViewset(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+class CategoryDeleteView(generics.DestroyAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+class PostViewset(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filterset_fields = ["property"]
 
 
+class AuthorViewset(viewsets.ModelViewSet):
+    queryset = Author.objects.all()
+    serializer_class = AuthorSerializer
+
+class UserViewset(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+# import logging
+# logger = logging.getLogger(__name__)
+
+# class Index(View):
+#     def get(self, request):
+#         string = _('Hello world')
+#
+#         # return HttpResponse(string)
+#         context = {'string': string}
+#         return HttpResponse(render(request, 'tmp.html', context))
+
+# #Пример с переводом полей в админке
+# class Index(View):
+#     def get(self, request):
+#         # . Translators: This message appears on the home page only
+#         models = Category.objects.all()
+# #        models = Post.objects.all()
+#         context = {
+#             'models': models,
+#         }
+#         #print (context)
+#         return HttpResponse(render(request, 'tmp2.html', context))
+
+import pytz  # импортируем стандартный модуль для работы с часовыми поясами
+from django.utils import timezone
+from django.shortcuts import redirect
+
+class Index(View):
+    def get(self, request):
+        curent_time = timezone.now()
+
+        # .  Translators: This message appears on the home page only
+        models = Category.objects.all()
+
+        context = {
+            'models': models,
+            'current_time': timezone.now(),
+            'timezones': pytz.common_timezones  # добавляем в контекст все доступные часовые пояса
+        }
+
+        return HttpResponse(render(request, 'tmp3.html', context))
+
+    #  по пост-запросу будем добавлять в сессию часовой пояс, который и будет обрабатываться написанным нами ранее middleware
+    def post(self, request):
+        request.session['django_timezone'] = request.POST['timezone']
+        return redirect('/tmp/')
 
 class NewsList(LoginRequiredMixin, ListView):
     # Указываем модель, объекты которой мы будем выводить

@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
+from django.utils.translation import gettext_lazy as _
 import os
 from pathlib import Path
 import environ
@@ -51,6 +52,8 @@ ALLOWED_HOSTS = []
 
 # Application definition
 INSTALLED_APPS = [
+    'modeltranslation',  # обязательно впишите его перед админом
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -74,6 +77,7 @@ INSTALLED_APPS = [
     'protect',
 
     'django_filters',
+    'rest_framework',
 ]
 
 SITE_URL = 'http://127.0.0.1:8000'
@@ -82,6 +86,9 @@ MIDDLEWARE = [
     #    'news.middleware.timing',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+
+    'django.middleware.locale.LocaleMiddleware',
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -89,6 +96,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
+
+    'news.middleware.TimezoneMiddleware',  # обработка часовых поясов
 ]
 
 ROOT_URLCONF = 'NewsPaper.urls'
@@ -152,9 +161,23 @@ AUTHENTICATION_BACKENDS = [
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
+LANGUAGES = (
+    ('en-us', 'English'),
+    ('ru', 'Русский'),
+)
+
+# gettext = lambda s: s
+# LANGUAGES = (
+#     ('en-us', gettext('English')),
+#     ('ru', gettext('Russian')),
+# )
+
+
+# MODELTRANSLATION_DEFAULT_LANGUAGE = 'ru'
+# MODELTRANSLATION_TRANSLATION_REGISTRY = 'news.translation'
 
 TIME_ZONE = 'UTC'
-
+# TIME_ZONE = 'America/New_York'
 USE_I18N = True
 
 USE_TZ = True
@@ -196,130 +219,143 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'loggers': {
-        'django': {
-            'handlers': ['console_1_all', 'console_1_warning', 'console_1_er_cr', 'general'],
-            'level': 'DEBUG'
-        },
-
-        'django.request': {
-            'handlers': ['errors', 'mail_admins'],
-            'level': 'ERROR'
-        },
-        'django.server': {
-            'handlers': ['errors', 'mail_admins'],
-            'level': 'ERROR'
-        },
-        'django.template': {
-            'handlers': ['errors'],
-            'level': 'ERROR'
-        },
-        'django.db.backends': {
-            'handlers': ['errors'],
-            'level': 'ERROR'
-        },
-        'django.db.security': {
-            'handlers': ['security'],
-            'level': 'INFO'
-        },
-
-    },
-    'handlers': {
-        'console_1_all': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'task_1_all',
-            'level': 'DEBUG',
-            'filters': ['require_debug_true'],
-        },
-        'console_1_warning': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'task_1_warning',
-            'level': 'WARNING',
-            'filters': ['require_debug_true'],
-        },
-        'console_1_er_cr': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'task_1_er_cr',
-            'level': 'ERROR',
-            'filters': ['require_debug_true'],
-        },
-        'general': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': 'general.log',
-            'formatter': 'task_2',
-            'filters': ['require_debug_false'],
-        },
-        'errors': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': 'errors.log',
-            'formatter': 'task_3',
-        },
-        'security': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': 'security.log',
-            'formatter': 'task_4',
-        },
-        'mail_admins': {
-            'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler',
-            'formatter': 'task_5',
-            'filters': ['require_debug_false'],
-        },
-
-    },
-
-    'formatters': {
-        'task_1_all': {
-            'format': '{asctime} {levelname} {message}',
-            'datetime': '%Y.%m.%d %H:%M:%S',
-            'style': '{',
-        },
-        'task_1_warning': {
-            'format': '{asctime} {levelname} {message} {pathname}',
-            'datetime': '%Y.%m.%d %H:%M:%S',
-            'style': '{',
-        },
-        'task_1_er_cr': {
-            'format': '{asctime} {levelname} {message} {pathname} {exc_info}',
-            'datetime': '%Y.%m.%d %H:%M:%S',
-            'style': '{',
-        },
-        'task_2': {
-            'format': '{asctime} {levelname} {module} {message}',
-            'datetime': '%Y.%m.%d %H:%M:%S',
-            'style': '{',
-        },
-        'task_3': {
-            'format': '{asctime} {levelname} {message} {pathname} {exc_info}',
-            'datetime': '%Y.%m.%d %H:%M:%S',
-            'style': '{',
-        },
-        'task_4': {
-            'format': '{asctime} {levelname} {module} {message}',
-            'datetime': '%Y.%m.%d %H:%M:%S',
-            'style': '{',
-        },
-        'task_5': {
-            'format': '{asctime} {levelname} {message} {pathname}',
-            'datetime': '%Y.%m.%d %H:%M:%S',
-            'style': '{',
-        },
-    },
-
-    'filters': {
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue',
-        },
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse',
-        },
-    },
-}
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'loggers': {
+#         'django': {
+#             'handlers': ['console_1_all', 'console_1_warning', 'console_1_er_cr', 'general'],
+#             'level': 'DEBUG'
+#         },
+#
+#         'django.request': {
+#             'handlers': ['errors', 'mail_admins'],
+#             'level': 'ERROR'
+#         },
+#         'django.server': {
+#             'handlers': ['errors', 'mail_admins'],
+#             'level': 'ERROR'
+#         },
+#         'django.template': {
+#             'handlers': ['errors'],
+#             'level': 'ERROR'
+#         },
+#         'django.db.backends': {
+#             'handlers': ['errors'],
+#             'level': 'ERROR'
+#         },
+#         'django.db.security': {
+#             'handlers': ['security'],
+#             'level': 'INFO'
+#         },
+#
+#     },
+#     'handlers': {
+#         'console_1_all': {
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'task_1_all',
+#             'level': 'DEBUG',
+#             'filters': ['require_debug_true'],
+#         },
+#         'console_1_warning': {
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'task_1_warning',
+#             'level': 'WARNING',
+#             'filters': ['require_debug_true'],
+#         },
+#         'console_1_er_cr': {
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'task_1_er_cr',
+#             'level': 'ERROR',
+#             'filters': ['require_debug_true'],
+#         },
+#         'general': {
+#             'level': 'INFO',
+#             'class': 'logging.FileHandler',
+#             'filename': 'general.log',
+#             'formatter': 'task_2',
+#             'filters': ['require_debug_false'],
+#         },
+#         'errors': {
+#             'level': 'ERROR',
+#             'class': 'logging.FileHandler',
+#             'filename': 'errors.log',
+#             'formatter': 'task_3',
+#         },
+#         'security': {
+#             'level': 'INFO',
+#             'class': 'logging.FileHandler',
+#             'filename': 'security.log',
+#             'formatter': 'task_4',
+#         },
+#         'mail_admins': {
+#             'level': 'ERROR',
+#             'class': 'django.utils.log.AdminEmailHandler',
+#             'formatter': 'task_5',
+#             'filters': ['require_debug_false'],
+#         },
+#
+#     },
+#
+#     'formatters': {
+#         'task_1_all': {
+#             'format': '{asctime} {levelname} {message}',
+#             'datetime': '%Y.%m.%d %H:%M:%S',
+#             'style': '{',
+#         },
+#         'task_1_warning': {
+#             'format': '{asctime} {levelname} {message} {pathname}',
+#             'datetime': '%Y.%m.%d %H:%M:%S',
+#             'style': '{',
+#         },
+#         'task_1_er_cr': {
+#             'format': '{asctime} {levelname} {message} {pathname} {exc_info}',
+#             'datetime': '%Y.%m.%d %H:%M:%S',
+#             'style': '{',
+#         },
+#         'task_2': {
+#             'format': '{asctime} {levelname} {module} {message}',
+#             'datetime': '%Y.%m.%d %H:%M:%S',
+#             'style': '{',
+#         },
+#         'task_3': {
+#             'format': '{asctime} {levelname} {message} {pathname} {exc_info}',
+#             'datetime': '%Y.%m.%d %H:%M:%S',
+#             'style': '{',
+#         },
+#         'task_4': {
+#             'format': '{asctime} {levelname} {module} {message}',
+#             'datetime': '%Y.%m.%d %H:%M:%S',
+#             'style': '{',
+#         },
+#         'task_5': {
+#             'format': '{asctime} {levelname} {message} {pathname}',
+#             'datetime': '%Y.%m.%d %H:%M:%S',
+#             'style': '{',
+#         },
+#     },
+#
+#     'filters': {
+#         'require_debug_true': {
+#             '()': 'django.utils.log.RequireDebugTrue',
+#         },
+#         'require_debug_false': {
+#             '()': 'django.utils.log.RequireDebugFalse',
+#         },
+#     },
+# }
 
 ADMINS = [('Andrey', 'ankom225@gmail.com')]
+
+LOCALE_PATHS = [os.path.join(BASE_DIR, 'locale')]
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 10,
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}

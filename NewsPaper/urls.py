@@ -16,13 +16,26 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from news.views import NewsCreate, NewsDetail, NewsDelete, NewsEdit, CategoryListView, subscribe
+from news.models import Category
+from news.views import Index
+from news.views import NewsCreate, NewsDetail, NewsDelete, NewsEdit, CategoryListView, CategoryDeleteView, subscribe
 # from news.views NewsList, NewsSearch
 from news.views import ArticleCreate, ArticleDetail, ArticleDelete, ArticleEdit
 from accounts.views import ProfileEdit
 from news.views import multiply
 
+from rest_framework import routers
+from news import views
+
+# Routers provide an easy way of automatically determining the URL conf.
+router = routers.DefaultRouter()
+router.register(r'category', views.CategoryViewset)
+router.register(r'post', views.PostViewset)
+router.register(r'author', views.AuthorViewset)
+router.register(r'user', views.UserViewset)
+
 urlpatterns = [
+    path('i18n/', include('django.conf.urls.i18n')),  # подключаем встроенные эндопинты для работы с локализацией
     path('admin/', admin.site.urls),
     path('', include('protect.urls'), name='protect'),
     path('sign/', include('sign.urls'), name='sign'),
@@ -52,6 +65,11 @@ urlpatterns = [
 
     path('categories/<int:pk>', CategoryListView.as_view(), name='category_list'),
     path('categories/<int:pk>/subscribe', subscribe, name='subscribe'),
+    path('api/', include(router.urls), name='api'),
+    path('api/category/<int:pk>/', CategoryDeleteView.as_view(), name='category_delete'),
+    #    path('api/', include('rest_framework.urls', namespace='rest_framework')),
 
     path('multiply/', multiply, name='multiply'),  # мусор
+    #    path('tmp/', include('news.urls_tmp'), name='tmp'),
+    path('tmp/', Index.as_view(), name='index')
 ]
